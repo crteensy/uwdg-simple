@@ -1,6 +1,28 @@
 #ifndef UWDG_WIDGET_H
 #define UWDG_WIDGET_H
 
+/* TO DO:
+  when a root widget is destroyed, the prior root widget doesn't get
+  focus back. Maybe create a RootWidget class that stores the last focused child
+  or come up with another way of handling this gracefully.
+
+  Pro RootWidget:
+  - can restore the exact focused widget, feels like it should be that way
+  Contra:
+  - if a previously focused child is deleted while the root
+  widget is inactive, the root widget focus pointer will be dangling.
+  - focus "tracking" is done by the Widget class, whereas RootWidget would just
+  add to that. Might get out of sync?
+  - hen and egg problem when widgets keep a list of root widgets that are widgets
+
+  Other options:
+  - don't keep a list of root widgets, but a list of (root,focus) tuples?
+  - create a WidgetRoot class that is not a widget, but can keep track of focus
+    (might be internal to Widget?): uwdg::Widget::Root
+
+
+*/
+
 #include <algorithm>
 
 #include "geometry.h"
@@ -26,8 +48,10 @@ public:
     prev_(nullptr),
     next_(nullptr),
     style_(parent != nullptr ? &parent->style() : &defaultStyle_),
+    font_(DefaultFont),
     flags_(flag_visible | flag_redraw)
   {
+    PRINTDEBUG(("Widget(%p)\n", this));
     if(parent != nullptr)
     {
       parent->appendChild(this);
@@ -97,6 +121,7 @@ public:
   {
     w->next_ = rootWidgets_;
     rootWidgets_ = w;
+    getFocusP() = nullptr; // TBD: this seems like a hack
   }
 
 
@@ -296,11 +321,31 @@ void removeChild(Widget* child)
     }
   }
 
-  void setStyle(const Style* style) // pointer allows resetting to default, so no reference arg
+  void setStyle(const Style& style)
   {
-    style_ = style;
+    style_ = &style;
   }
 
+  void setFont(const Font font)
+  {
+    font_ = font;
+  }
+
+  Font font() const
+  {
+    if(font_ != DefaultFont)
+    {
+      return font_;
+    }
+    else if(hasParent())
+    {
+      return parent()->font();
+    }
+    else
+    {
+      return style().font;
+    }
+  }
 
   bool transparent() const
   {
@@ -717,6 +762,7 @@ private:
   Widget* prev_;
   Widget* next_;
   const Style* style_;
+  Font font_;
   Rectangle geometry_;
   flag_t flags_;
   static constexpr flag_t flag_visible      = (1<<0);

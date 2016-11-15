@@ -66,7 +66,7 @@ public:
     PRINTDEBUG(("Label(@%p)::draw()\n", this));
     Widget::draw();
     gdispGDrawStringBox(display(), absX(0), absY(0), width(), height(),
-                        text(), style().font, colorSet().text, (justify_t)alignment_);
+                        text(), font(), colorSet().text, (justify_t)alignment_);
   }
 private:
   void reset()

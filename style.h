@@ -6,6 +6,8 @@
 namespace uwdg
 {
 typedef color_t Color;
+typedef font_t Font;
+static constexpr Font DefaultFont = nullptr;
 
 struct Style
 {
@@ -20,8 +22,8 @@ struct Style
   ColorSet active;
   ColorSet highlighted;
   ColorSet pressed;
-  font_t font;
-  static font_t defaultFont;
+  Font font;
+  static Font defaultFont;
 };
 } // namespace uwdg
 
