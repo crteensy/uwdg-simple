@@ -3,12 +3,11 @@
 
 #include <stdio.h>
 
-#ifdef DEBUG
+#ifdef DEBUG_UWDG
   #define PRINTDEBUG(x) Serial.printf x
 #else
   #define PRINTDEBUG(x)
-#endif
+#endif // dEBUG_UWDG
 
 
 #endif // DEBUG_H
-

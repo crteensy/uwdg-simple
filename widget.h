@@ -16,10 +16,14 @@
   - hen and egg problem when widgets keep a list of root widgets that are widgets
 
   Other options:
+  - create a member Widget* that is set to the current focus when a root is
+    added, then use it to restore focus when the root widget is active again
+    contra this: extra space for all widgets needed
   - don't keep a list of root widgets, but a list of (root,focus) tuples?
   - create a WidgetRoot class that is not a widget, but can keep track of focus
     (might be internal to Widget?): uwdg::Widget::Root
-
+  - contra extra classes: user must use them.
+  - simply let the new active root determine which child to focus
 
 */
 
@@ -27,6 +31,7 @@
 
 #include "geometry.h"
 #include "style.h"
+//#define DEBUG_UWDG
 #include "debug.h"
 #include "inputEvent.h"
 
@@ -81,18 +86,12 @@ public:
       if(rootWidgets_ != nullptr)
       {
         rootWidgets_->redraw();
-        if(hadFocus)
-        {
+//        if(hadFocus)
+//        {
           rootWidgets_->giveFocus();
-        }
+//        }
       }
     }
-/* removed in "simple" version
-    while(hasChildren())
-    {
-      delete children();
-    }
-*/
   }
 
 
@@ -128,20 +127,25 @@ public:
   static void removeRoot(Widget* root)
   {
     Widget* w = rootWidgets_;
+    // the root we're looking for is the first in the list
     if (w == root)
     {
       rootWidgets_ = root->next();
       return;
     }
+    // it's not the first, walk through the list
     while((w != nullptr) && (w->next() != root))
     {
       w = w->next();
     }
-    // w is now nullptr or the root we're looking for
-    if(w->next() == root)
+    // now w == nullptr or w->next == root
+    if (w == nullptr)
     {
-      w->next_ = root->next();
+      return; // root not found => can't be removed
     }
+    // now consequently w->next == root:
+    w->next_ = root->next();
+    root->next_ = nullptr;
   }
 
   /*****************************************************************************
